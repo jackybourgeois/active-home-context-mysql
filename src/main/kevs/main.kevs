@@ -1,0 +1,52 @@
+add ah : JavaNode/5.2.9
+set ah.log = "DEBUG"
+
+add ah.timekeeper : org.activehome.service.time.TimeKeeper/0.0.1-SNAPSHOT
+set ah.timekeeper.startDate = "2013-07-19 00:00:00"
+set ah.timekeeper.stopDate = "2013-07-31 00:00:00"
+set ah.timekeeper.zipFactor = "x2"
+
+add chan_tic_timekeeper : AsyncBroadcast
+bind ah.timekeeper.tic chan_tic_timekeeper
+bind ah.timekeeper.time chan_tic_timekeeper
+add chan_getRequest_timekeeper : AsyncBroadcast
+bind ah.timekeeper.getRequest chan_getRequest_timekeeper
+add chan_pushResponse_timekeeper : AsyncBroadcast
+bind ah.timekeeper.pushResponse chan_pushResponse_timekeeper
+
+add ah.context : org.activehome.context.mysql.MySQLContext/0.0.1-SNAPSHOT
+bind ah.context.time chan_tic_timekeeper
+add chan_pushNotif_context : AsyncBroadcast
+bind ah.context.pushNotif chan_pushNotif_context
+
+add chan_pushNotif_timekeeper : AsyncBroadcast
+bind ah.timekeeper.pushNotif chan_pushNotif_timekeeper
+bind ah.context.getNotif chan_pushNotif_timekeeper
+
+add ah.taskScheduler : org.activehome.service.task.TaskScheduler/0.0.1-SNAPSHOT
+add chan_toSchedule_taskScheduler : AsyncBroadcast
+add chan_toExecute_taskScheduler : AsyncBroadcast
+
+bind ah.taskScheduler.time chan_tic_timekeeper
+bind ah.taskScheduler.toSchedule chan_toSchedule_taskScheduler
+bind ah.taskScheduler.toExecute chan_toExecute_taskScheduler
+
+add ah.tester : org.activehome.context.mysql.test.TesterMySQLContext/0.0.1-SNAPSHOT
+bind ah.tester.time chan_tic_timekeeper
+bind ah.tester.toSchedule chan_toSchedule_taskScheduler
+bind ah.tester.pushRequest chan_getRequest_timekeeper
+bind ah.tester.getResponse chan_pushResponse_timekeeper
+bind ah.tester.getNotif chan_pushNotif_context
+add chan_pushRequest_tester : AsyncBroadcast
+bind ah.tester.pushRequest chan_pushRequest_tester
+bind ah.context.getRequest chan_pushRequest_tester
+add chan_getResponse_tester : AsyncBroadcast
+bind ah.tester.getResponse chan_getResponse_tester
+bind ah.context.pushResponse chan_getResponse_tester
+add chan_pushNotif_tester : AsyncBroadcast
+bind ah.tester.pushNotif chan_pushNotif_tester
+bind ah.context.getNotif chan_pushNotif_tester
+
+add sync : WSGroup
+attach ah sync
+set sync.master = "ah"
