@@ -1,7 +1,7 @@
 add ah : JavaNode/5.2.9
 set ah.log = "DEBUG"
 
-add ah.timekeeper : org.activehome.service.time.TimeKeeper/0.0.1-SNAPSHOT
+add ah.timekeeper : org.activehome.timekeeper.TimeKeeper/0.0.1-SNAPSHOT
 set ah.timekeeper.startDate = "2013-07-19 00:00:00"
 set ah.timekeeper.stopDate = "2013-07-31 00:00:00"
 set ah.timekeeper.zipFactor = "x2"
@@ -23,7 +23,7 @@ add chan_pushNotif_timekeeper : AsyncBroadcast
 bind ah.timekeeper.pushNotif chan_pushNotif_timekeeper
 bind ah.context.getNotif chan_pushNotif_timekeeper
 
-add ah.taskScheduler : org.activehome.service.task.TaskScheduler/0.0.1-SNAPSHOT
+add ah.taskScheduler : org.activehome.task.TaskScheduler/0.0.1-SNAPSHOT
 add chan_toSchedule_taskScheduler : AsyncBroadcast
 add chan_toExecute_taskScheduler : AsyncBroadcast
 
