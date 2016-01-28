@@ -51,10 +51,26 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * MySQL implementation of Active Home context.
+ * @author Jacky Bourgeois
+ * @version %I%, %G%
  */
 @ComponentType
 public class MySQLContext extends Context {
+
+    @Param(defaultValue = "MySQL implementation of Active Home context.")
+    private String description;
+
+    @Param(defaultValue = "/activehome-context-mysql/master/docs/mysqlContext.png")
+    private String img;
+
+    @Param(defaultValue = "/activehome-context-mysql/master/docs/mysqlContext.md")
+    private String doc;
+
+    @Param(defaultValue = "/activehome-context-mysql/master/docs/demo.kevs")
+    private String demoScript;
+
+    @Param(defaultValue = "/activehome-context-mysql")
+    private String src;
 
     /**
      * MySQL date parser.
