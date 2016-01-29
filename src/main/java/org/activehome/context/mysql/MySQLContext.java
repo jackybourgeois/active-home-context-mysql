@@ -6,7 +6,7 @@ package org.activehome.context.mysql;
  * $Id:$
  * $HeadURL:$
  * %%
- * Copyright (C) 2016 org.activehome
+ * Copyright (C) 2016 Active Home Project
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -59,17 +59,7 @@ public class MySQLContext extends Context {
 
     @Param(defaultValue = "MySQL implementation of Active Home context.")
     private String description;
-
-    @Param(defaultValue = "/activehome-context-mysql/master/docs/mysqlContext.png")
-    private String img;
-
-    @Param(defaultValue = "/activehome-context-mysql/master/docs/mysqlContext.md")
-    private String doc;
-
-    @Param(defaultValue = "/activehome-context-mysql/master/docs/demo.kevs")
-    private String demoScript;
-
-    @Param(defaultValue = "/activehome-context-mysql")
+    @Param(defaultValue = "/active-home-context-mysql")
     private String src;
 
     /**

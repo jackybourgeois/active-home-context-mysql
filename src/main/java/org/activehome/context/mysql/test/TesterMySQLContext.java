@@ -6,7 +6,7 @@ package org.activehome.context.mysql.test;
  * $Id:$
  * $HeadURL:$
  * %%
- * Copyright (C) 2016 org.activehome
+ * Copyright (C) 2016 Active Home Project
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -43,6 +43,7 @@ import org.activehome.time.TimeControlled;
 import org.activehome.tools.Util;
 import org.kevoree.annotation.ComponentType;
 import org.kevoree.annotation.Input;
+import org.kevoree.annotation.Param;
 import org.kevoree.log.Log;
 
 import java.io.BufferedReader;
@@ -56,14 +57,16 @@ import java.util.LinkedList;
 import java.util.Map;
 
 /**
- * Mock component to test MySQLContext component.
- * - extractSampleData
- *
  * @author Jacky Bourgeois
  * @version %I%, %G%
  */
 @ComponentType
 public class TesterMySQLContext extends ComponentTester {
+
+    @Param(defaultValue = "Mock component to test MySQLContext component.")
+    private String description;
+    @Param(defaultValue = "/active-home-context-mysql")
+    private String src;
 
     /**
      * MySQL date parser.
