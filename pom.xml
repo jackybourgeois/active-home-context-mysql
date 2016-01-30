@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.active-home</groupId>
     <artifactId>org.active-home.context.mysql</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Active Home :: Context :: MySQL</name>
     <description>An Active Home context relying on MySQL</description>
@@ -62,22 +62,22 @@
         <dependency>
             <groupId>org.active-home</groupId>
             <artifactId>org.active-home.context</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.active-home</groupId>
             <artifactId>org.active-home.tools</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.active-home</groupId>
             <artifactId>org.active-home.test</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.active-home</groupId>
             <artifactId>org.active-home.mysql</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.eclipsesource.minimal-json</groupId>
