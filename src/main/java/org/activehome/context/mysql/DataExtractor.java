@@ -27,8 +27,8 @@ package org.activehome.context.mysql;
 
 import org.activehome.context.com.ContextRequest;
 import org.activehome.context.com.ContextResponse;
-import org.activehome.context.data.Schedule;
 import org.activehome.context.data.MetricRecord;
+import org.activehome.context.data.Schedule;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -122,34 +122,20 @@ public class DataExtractor {
             metricId = metricVersionArray[0];
 
             ResultSet result = extractSampleData(dbConnect, metricId, versions, startTS, endTS);
+            HashMap<String, String> initValMap = new HashMap<>();
             while (result.next()) {
                 long ts = result.getLong("time");
                 String val = result.getString("value");
                 long dpDuration = result.getLong("duration");
                 double confidence = result.getDouble("confidence");
                 String version = result.getString("version");
-                if (ts <= startTS) {
-                    if (dpDuration != -1) {
-                        mr.addRecord(startTS, duration, val, version, confidence);
-                    } else {
-                        mr.addRecord(startTS, val, version, confidence);
-                    }
-                } else if (ts < endTS) {
-                    if (mr.getRecords(version) == null) { // no data at mr start, add one "" or 0
-                        try {
-                            double dVal = Double.valueOf(val);
-                            if (dpDuration != -1) {
-                                mr.addRecord(startTS, 0, "0", version, 0);
-                            } else {
-                                mr.addRecord(startTS, "0", version, 0);
-                            }
-                        } catch (NumberFormatException e) {
-                            if (dpDuration != -1) {
-                                mr.addRecord(startTS, 0, "", version, 0);
-                            } else {
-                                mr.addRecord(startTS, "", version, 0);
-                            }
-                        }
+                if (ts < startTS) {
+                    initValMap.put(version, val);
+                } else {
+                    if (mr.getRecords(version) == null
+                            && initValMap.get(version) != null
+                            && dpDuration == -1) {      // TODO manage discret data (with duration)
+                        mr.addRecord(startTS, initValMap.get(version), version, confidence);
                     }
                     if (dpDuration != -1) {
                         mr.addRecord(ts, dpDuration, val, version, confidence);
@@ -158,6 +144,16 @@ public class DataExtractor {
                     }
                 }
             }
+
+            String mainVersion = null;
+            for (String version : versions) {
+                if (mainVersion == null && mr.getRecords(version) != null
+                        && mr.getRecords(version).size() > 0) {
+                    mr.setMainVersion(version);
+                    mainVersion = version;
+                }
+            }
+
             schedule.getMetricRecordMap().put(mr.getMetricId(), mr);
         }
 
@@ -237,7 +233,7 @@ public class DataExtractor {
                             "WHERE\n" +
                             "    m.`metricID` = ? \n" +
                             "        AND m.`version` = ? \n" +
-                            "        AND UNIX_TIMESTAMP(d.`ts`) BETWEEN ? AND ? \n" +
+                            "        AND UNIX_TIMESTAMP(d.`ts`) >= ? AND UNIX_TIMESTAMP(d.`ts`) < ? \n" +
                             "ORDER BY d.`ts`) UNION DISTINCT (SELECT \n" +
                             "    d.`value`,\n" +
                             "    d.`duration`,\n" +
@@ -251,22 +247,9 @@ public class DataExtractor {
                             "        AND m.`version` = ?\n" +
                             "        AND UNIX_TIMESTAMP(d.`ts`) <= ?\n" +
                             "ORDER BY d.`ts` DESC\n" +
-                            "LIMIT 1) UNION DISTINCT (SELECT \n" +
-                            "    d.`value`,\n" +
-                            "    d.`duration`,\n" +
-                            "    UNIX_TIMESTAMP(d.`ts`) * 1000 AS 'ts',\n" +
-                            "    UNIX_TIMESTAMP(d.`ts`) * 1000 AS 'time',\n" +
-                            "    m.`version`,\n" +
-                            "    d.`confidence`\n" +
-                            "FROM `data` d JOIN `metrics` m ON d.`id` = m.`id`\n" +
-                            "WHERE\n" +
-                            "    m.`metricID` = ?\n" +
-                            "        AND m.`version` = ?\n" +
-                            "        AND UNIX_TIMESTAMP(d.`ts`) >= ?\n" +
-                            "ORDER BY d.`ts`\n" +
                             "LIMIT 1)";
-                    Collections.addAll(params, metricId, version, start, end, metricId,
-                            version, start, metricId, version, end);
+                    Collections.addAll(params, metricId, version, start, end,
+                            metricId, version, start);
                 } else {
                     query += "(SELECT \n" +
                             "    d.`value`,\n" +
@@ -279,7 +262,8 @@ public class DataExtractor {
                             "WHERE\n" +
                             "    m.`metricID` = ?\n" +
                             "        AND m.`version` = ?\n" +
-                            "        AND (UNIX_TIMESTAMP(d.`ts`) + m.`shift` / 1000) BETWEEN ? AND ?\n" +
+                            "        AND (UNIX_TIMESTAMP(d.`ts`) + m.`shift` / 1000) >= ? \n" +
+                            "        AND (UNIX_TIMESTAMP(d.`ts`) + m.`shift` / 1000) < ? \n" +
                             "GROUP BY m.`shift`\n" +
                             "ORDER BY time DESC) UNION DISTINCT (SELECT \n" +
                             "    d.`value`,\n" +
@@ -295,22 +279,9 @@ public class DataExtractor {
                             "        AND (UNIX_TIMESTAMP(d.`ts`) + m.`shift` / 1000) <= ?\n" +
                             "GROUP BY m.`shift`\n" +
                             "ORDER BY time DESC\n" +
-                            "LIMIT 1) UNION DISTINCT (SELECT \n" +
-                            "    d.`value`,\n" +
-                            "    d.`duration`,\n" +
-                            "    (UNIX_TIMESTAMP(d.`ts`) * 1000) AS 'ts',\n" +
-                            "    ((UNIX_TIMESTAMP(d.`ts`) * 1000) + m.`shift`) AS 'time',\n" +
-                            "    m.`version`,\n" +
-                            "    d.`confidence`\n" +
-                            "FROM `data` d JOIN `metrics` m ON d.`id` = m.`id`\n" +
-                            "WHERE\n" +
-                            "    m.`metricID` = ?\n" +
-                            "        AND m.`version` = ?\n" +
-                            "        AND (UNIX_TIMESTAMP(d.`ts`) + m.`shift` / 1000) >= ?\n" +
-                            "GROUP BY m.`shift`\n" +
-                            "ORDER BY time LIMIT 1)";
+                            "LIMIT 1)";
                     Collections.addAll(params, metricId, version, start, end,
-                            metricId, version, start, metricId, version, end);
+                            metricId, version, start);
                 }
             }
         }
