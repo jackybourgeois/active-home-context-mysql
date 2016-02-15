@@ -42,6 +42,12 @@ import java.util.*;
  */
 public class DataExtractor {
 
+    private MySQLContext context;
+
+    public DataExtractor(MySQLContext context) {
+        this.context = context;
+    }
+
     /**
      * Extract DataPoints from the context.
      *
@@ -112,7 +118,7 @@ public class DataExtractor {
 
         for (String metricId : metrics) {
             String[] metricVersionArray = metricId.split("#");
-            MetricRecord mr = new MetricRecord(metricVersionArray[0], schedule.getHorizon());
+            MetricRecord mr = new MetricRecord(metricVersionArray[0], startTS, schedule.getHorizon());
             mr.setRecording(false);
             String[] versions = new String[]{"0"};
             if (metricVersionArray.length == 2) {
@@ -123,24 +129,26 @@ public class DataExtractor {
 
             ResultSet result = extractSampleData(dbConnect, metricId, versions, startTS, endTS);
             HashMap<String, String> initValMap = new HashMap<>();
-            while (result.next()) {
-                long ts = result.getLong("time");
-                String val = result.getString("value");
-                long dpDuration = result.getLong("duration");
-                double confidence = result.getDouble("confidence");
-                String version = result.getString("version");
-                if (ts < startTS) {
-                    initValMap.put(version, val);
-                } else {
-                    if (mr.getRecords(version) == null
-                            && initValMap.get(version) != null
-                            && dpDuration == -1) {      // TODO manage discret data (with duration)
-                        mr.addRecord(startTS, initValMap.get(version), version, confidence);
-                    }
-                    if (dpDuration != -1) {
-                        mr.addRecord(ts, dpDuration, val, version, confidence);
+            if (result!=null) {
+                while (result.next()) {
+                    long ts = result.getLong("time");
+                    String val = result.getString("value");
+                    long dpDuration = result.getLong("duration");
+                    double confidence = result.getDouble("confidence");
+                    String version = result.getString("version");
+                    if (ts < startTS) {
+                        initValMap.put(version, val);
                     } else {
-                        mr.addRecord(ts, val, version, confidence);
+                        if (mr.getRecords(version) == null
+                                && initValMap.get(version) != null
+                                && dpDuration == -1) {      // TODO manage discret data (with duration)
+                            mr.addRecord(startTS, initValMap.get(version), version, confidence);
+                        }
+                        if (dpDuration != -1) {
+                            mr.addRecord(ts, dpDuration, val, version, confidence);
+                        } else {
+                            mr.addRecord(ts, val, version, confidence);
+                        }
                     }
                 }
             }

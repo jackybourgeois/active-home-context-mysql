@@ -86,7 +86,7 @@ public class MySQLContext extends Context {
     public final void start() {
         super.start();
         resetDB();
-        dataExtractor = new DataExtractor();
+        dataExtractor = new DataExtractor(this);
         viewManager = new ViewManager(this);
     }
 
