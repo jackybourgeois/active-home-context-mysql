@@ -514,7 +514,7 @@ public class MySQLContext extends Context {
             String query = "SELECT m.`metricID`, m.`version`, m.`shift`, d.`value`, d.`ts`, "
                     + " d.`confidence`, d.`duration` "
                     + " FROM `data` d JOIN `metrics` m ON d.`id`=m.`id`"
-                    + " GROUP BY m.`metricID`, m.`version`, m.`shift`"
+                    + " GROUP BY m.`metricID`, m.`version`, m.`shift`, d.`value`, d.`ts`, d.`confidence`, d.`duration`"
                     + " ORDER BY d.`ts` DESC";
 
             prepStmt = dbConnect.prepareStatement(query);
